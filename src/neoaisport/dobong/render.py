@@ -1,0 +1,132 @@
+"""Lớp vẽ Đỡ Bóng — nền camera/sân + bóng + con trỏ tay."""
+from __future__ import annotations
+
+import pygame
+
+from neoaisport import config as C
+from neoaisport.ui.sprites import font, load_logo, scale_to
+from neoaisport.ui.widgets import (
+    Particle, center_text, draw_text, mode_card, pill, round_rect, wordmark,
+)
+
+
+def _sky(w, h):
+    s = pygame.Surface((w, h))
+    for y in range(h):
+        t = (y / h) ** 0.9
+        s.fill(tuple(int(C.BLUE_CYAN[i] + (C.BLUE_SOFT[i] - C.BLUE_CYAN[i]) * t) for i in range(3)),
+               (0, y, w, 1))
+    return s
+
+
+class VolleyRenderer:
+    def __init__(self, screen, source_name="camera"):
+        self.screen = screen
+        self.source_name = source_name
+        self.f_hero = font(72)
+        self.f_big = font(46)
+        self.f_md = font(26)
+        self.f_sm = font(18)
+        logo = load_logo()
+        self.logo_big = scale_to(logo, w=250) if logo else None
+        self.logo_sm = scale_to(logo, h=24) if logo else None
+        self.sky = _sky(C.W, C.H)
+        self.dim = pygame.Surface((C.W, C.H), pygame.SRCALPHA)
+        self.dim.fill((10, 16, 40, 90))
+        self.fx = []
+
+    def draw(self, ctrl, ev, lb, dt, bg=None, points=None):
+        hands = points or []
+        for i, x, y in ev.hits:
+            acc = C.BLUE_ELECTRIC if (ctrl.mode == "solo" or i == 0) else C.ORANGE_HOT
+            for _ in range(12):
+                self.fx.append(Particle(x, y, acc))
+        for p in self.fx:
+            p.update(dt)
+        self.fx = [p for p in self.fx if p.life > 0]
+
+        if ctrl.state == ctrl.MENU:
+            self._menu(ctrl, lb)
+            wordmark(self.screen, self.f_sm, self.logo_sm, "Đỡ Bóng · NeoAiSport")
+            return
+        if bg is not None:
+            self.screen.blit(bg, (0, 0))
+            self.screen.blit(self.dim, (0, 0))
+        else:
+            self.screen.blit(self.sky, (0, 0))
+        if ctrl.mode == "duel":
+            pygame.draw.line(self.screen, (*C.WHITE, 120), (C.W // 2, 0), (C.W // 2, C.H), 2)
+        # sàn
+        pygame.draw.rect(self.screen, C.GREEN_CRICKET, (0, C.FLOOR_Y, C.W, C.H - C.FLOOR_Y))
+        pygame.draw.rect(self.screen, C.PINK_HOT, (0, C.FLOOR_Y, C.W, 5))
+        for i, ball in enumerate(ctrl.balls):
+            if ball.alive:
+                acc = C.BLUE_ELECTRIC if (ctrl.mode == "solo" or i == 0) else C.ORANGE_HOT
+                self._ball(ball.x, ball.y, acc)
+        for p in self.fx:
+            p.draw(self.screen)
+        for h in hands:
+            acc = C.GREEN_LIME if ctrl.mode == "solo" else (C.BLUE_ELECTRIC if h[0] < C.W / 2 else C.ORANGE_HOT)
+            self._cursor(h[0], h[1], acc)
+        if ctrl.state == ctrl.PLAY:
+            self._hud(ctrl)
+        if ctrl.state == ctrl.COUNTDOWN:
+            center_text(self.screen, self.f_hero, str(ev.countdown_tick or 1),
+                        C.W // 2, C.H // 2, C.BLUE_ELECTRIC, panel=True)
+            center_text(self.screen, self.f_md, "Giơ tay sẵn sàng!", C.W // 2, C.H // 2 + 70, C.WHITE)
+        if ctrl.state == ctrl.RESULT:
+            self._result(ctrl)
+        wordmark(self.screen, self.f_sm, self.logo_sm, "Đỡ Bóng · NeoAiSport")
+
+    def _ball(self, x, y, accent):
+        x, y = int(x), int(y)
+        pygame.draw.circle(self.screen, C.WHITE, (x, y), C.BALL_R)
+        pygame.draw.circle(self.screen, accent, (x, y), C.BALL_R, 5)
+        pygame.draw.arc(self.screen, accent, (x - C.BALL_R, y - C.BALL_R, 2 * C.BALL_R, 2 * C.BALL_R), 0.4, 2.3, 4)
+        pygame.draw.line(self.screen, accent, (x - 4, y - C.BALL_R), (x - 10, y - C.BALL_R - 12), 2)
+        pygame.draw.line(self.screen, accent, (x + 4, y - C.BALL_R), (x + 10, y - C.BALL_R - 12), 2)
+
+    def _cursor(self, x, y, accent):
+        x, y = int(x), int(y)
+        pygame.draw.circle(self.screen, accent, (x, y), C.HIT_R, 5)
+        pygame.draw.circle(self.screen, C.WHITE, (x, y), 6)
+
+    def _hud(self, ctrl):
+        if ctrl.mode == "solo":
+            pill(self.screen, self.f_big, C.W // 2, 50, str(ctrl.counts[0]), C.BLUE_ELECTRIC)
+            draw_text(self.screen, self.f_sm, f"Kỷ lục {ctrl.best}", 24, 24, C.WHITE)
+        else:
+            self._chip(20, 16, "P1", ctrl.counts[0], C.BLUE_ELECTRIC)
+            self._chip(C.W - 150, 16, "P2", ctrl.counts[1], C.ORANGE_HOT)
+
+    def _chip(self, x, y, label, n, accent):
+        r = pygame.Rect(x, y, 130, 46)
+        round_rect(self.screen, r, (247, 247, 247, 235), accent, 4, 14)
+        draw_text(self.screen, self.f_md, label, r.left + 12, r.top + 8, accent)
+        num = self.f_md.render(str(n), True, C.INK)
+        self.screen.blit(num, (r.right - 14 - num.get_width(), r.top + 8))
+
+    def _menu(self, ctrl, lb):
+        s = self.screen
+        s.blit(self.sky, (0, 0))
+        if self.logo_big:
+            s.blit(self.logo_big, self.logo_big.get_rect(center=(C.W // 2, 60)))
+        self._ball(C.W // 2 - 250, 165, C.BLUE_ELECTRIC)
+        self._ball(C.W // 2 + 250, 150, C.ORANGE_HOT)
+        center_text(s, self.f_hero, "Đỡ Bóng", C.W // 2, 150, C.BLUE_ELECTRIC)
+        center_text(s, self.f_sm, "NeoAiSport · vung tay giữ bóng trên không", C.W // 2, 200, C.GREEN_CRICKET)
+        mode_card(s, self.f_big, self.f_md, C.W // 2 - 180, 330, "SOLO", "Giữ càng lâu càng cao", "Nút 1 · SPACE", C.BLUE_ELECTRIC)
+        mode_card(s, self.f_big, self.f_md, C.W // 2 + 180, 330, "ĐẤU 2 NGƯỜI", "Ai rớt trước thua", "Nút 2 · ENTER", C.ORANGE_HOT)
+        center_text(s, self.f_sm, f"Camera: {self.source_name}   ·   ESC thoát", C.W // 2, C.H - 56, C.INK)
+
+    def _result(self, ctrl):
+        ov = pygame.Surface((C.W, C.H), pygame.SRCALPHA)
+        ov.fill((18, 26, 70, 130))
+        self.screen.blit(ov, (0, 0))
+        card = pygame.Rect(0, 0, 600, 240)
+        card.center = (C.W // 2, C.H // 2)
+        acc = C.ORANGE_HOT if "THẮNG" in ctrl.result else C.BLUE_ELECTRIC
+        round_rect(self.screen, card, C.WHITE, acc, 5, 30)
+        center_text(self.screen, self.f_hero, ctrl.result, C.W // 2, C.H // 2 - 46, acc)
+        center_text(self.screen, self.f_md, "Nút 1 chơi lại  ·  Nút 2 menu  ·  ESC thoát",
+                    C.W // 2, C.H // 2 + 52, C.INK)

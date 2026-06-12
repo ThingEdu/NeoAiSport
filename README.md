@@ -9,7 +9,8 @@ khuôn mặt, đầu, tư thế) qua **camera** — không cần tay cầm. Cùn
 | Game | Mô hình AI | Vận động | Trạng thái |
 |------|-----------|----------|-----------|
 | **Bắt Dế** | HandLandmarker (bàn tay) | vẫy tay bắt đàn Dế | ✅ |
-| Hứng Mưa | PoseLandmarker (đầu/thân) | nghiêng người hứng giọt | 🔜 |
+| **Hứng Mưa** | PoseLandmarker (đầu/thân) | nghiêng người hứng giọt | ✅ |
+| **Đỡ Bóng** | HandLandmarker (bàn tay) | vung tay giữ bóng trên không | ✅ |
 | Mặt Cười · Cử Chỉ · trò chơi dân gian | Face / Gesture / Pose | biểu cảm, cử chỉ, toàn thân | 💡 |
 
 → Phân tích & quy hoạch: [`docs/NeoAiSport-Plan.md`](docs/NeoAiSport-Plan.md)
@@ -19,11 +20,13 @@ khuôn mặt, đầu, tư thế) qua **camera** — không cần tay cầm. Cùn
 ```bash
 make install        # đầy đủ (mediapipe + opencv-contrib + pygame)
 make install-lean   # gọn cho ARM/NEO: tránh trùng opencv (headless)
-make run            # màn tổng — chọn game thị giác
+make run            # màn tổng — chọn game thị giác (Bắt Dế / Hứng Mưa / Đỡ Bóng)
 make run-batde      # Bắt Dế bằng camera
 make run-mouse      # Bắt Dế bằng chuột (không cần webcam)
-make test
+make test           # 19 test engine (3 game)
 ```
+Hoặc: `python -m neoaisport.hub` · `… .batde.app` · `… .huongmua.app` · `… .dobong.app`
+(thêm `--source mouse` để chơi bằng chuột khi không có webcam)
 Lần đầu macOS hỏi quyền **Camera** → cho phép. (Cảnh báo `Class SDL... in both` chỉ có ở macOS, vô hại.)
 
 ## Cấu trúc

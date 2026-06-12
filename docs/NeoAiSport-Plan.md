@@ -32,8 +32,9 @@ nhẹ/ổn; NeoAiSport gom thị giác AI với **repo + domain + stack riêng**
 ## 4. Danh mục game (roadmap)
 | Game | Mô hình AI | Vận động | Trạng thái |
 |---|---|---|---|
-| **Bắt Dế** | HandLandmarker | vẫy tay bắt đàn Dế | ✅ chuyển sang |
-| **Hứng Mưa** | PoseLandmarker (đầu/thân) | nghiêng người hứng giọt mưa | 🔜 |
+| **Bắt Dế** | HandLandmarker | vẫy tay bắt đàn Dế | ✅ |
+| **Hứng Mưa** | PoseLandmarker (đầu/thân) | nghiêng người hứng giọt mưa | ✅ |
+| **Đỡ Bóng** | HandLandmarker | vung tay giữ bóng trên không (thể thao) | ✅ |
 | **Mặt Cười** | FaceLandmarker | há miệng/biểu cảm điều khiển | 🔜 |
 | **Oẳn Tù Tì / vẫy tay** | GestureRecognizer | cử chỉ tay | 🔜 |
 | **Trò chơi dân gian camera** | Pose/Hand | nhảy dây ảo, rồng rắn, vẫy bắt… | 💡 |
@@ -69,8 +70,8 @@ Số đo thật (build tham chiếu):
   NeoArcade. Máy có webcam + đủ sức → cài thêm NeoAiSport.
 
 ## 8. Lộ trình
-1. ✅ Tách repo NeoAiSport, chuyển **Bắt Dế** sang, hub game thị giác (+ ô "sắp ra mắt").
-2. 🔜 Verify `mediapipe` trên NEO ARM + **chế độ ARM** (640×480, luồng riêng, frame-skip) + fallback OpenCV.
-3. 🔜 **Hứng Mưa** (PoseLandmarker) — game đầu dùng tư thế đầu/thân.
+1. ✅ Tách repo NeoAiSport, chuyển **Bắt Dế** sang, hub game thị giác.
+2. ✅ **Hứng Mưa** (Pose) + **Đỡ Bóng** (Hand) — 3 game thị giác, hub đủ 3 thẻ, 19 test.
+3. 🔜 Verify `mediapipe` trên NEO ARM + **chế độ ARM** (640×480, luồng riêng, frame-skip) + fallback OpenCV.
 4. 🔜 Face/Gesture games + trò chơi dân gian camera.
 5. 🔜 Landing domain + đóng gói NeoPlay (entry riêng).

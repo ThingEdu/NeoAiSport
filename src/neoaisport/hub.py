@@ -19,9 +19,11 @@ GAMES = [
          module="neoaisport.batde.app", args=["--source", "camera"],
          accent=C.GREEN_CRICKET, icon="hand", ready=True),
     dict(title="Hứng Mưa", tech="Tư thế đầu/thân (Pose)", move="Nghiêng người hứng giọt",
-         module=None, args=[], accent=C.BLUE_ELECTRIC, icon="head", ready=False),
-    dict(title="Mặt Cười", tech="Khuôn mặt (FaceLandmarker)", move="Biểu cảm điều khiển",
-         module=None, args=[], accent=C.PINK_HOT, icon="face", ready=False),
+         module="neoaisport.huongmua.app", args=["--source", "camera"],
+         accent=C.BLUE_ELECTRIC, icon="head", ready=True),
+    dict(title="Đỡ Bóng", tech="Bàn tay (HandLandmarker)", move="Vung tay giữ bóng",
+         module="neoaisport.dobong.app", args=["--source", "camera"],
+         accent=C.ORANGE_HOT, icon="ball", ready=True),
 ]
 
 TW, TH, GAP = 250, 320, 28
@@ -160,6 +162,12 @@ class Hub:
             for k in range(4):
                 dx = -24 + k * 16
                 pygame.draw.line(s, C.BLUE_CYAN, (cx + dx, cy - 40), (cx + dx, cy - 28), 3)
+        elif kind == "ball":
+            pygame.draw.circle(s, C.WHITE, (cx, cy), 28)
+            pygame.draw.circle(s, accent, (cx, cy), 28, 5)
+            pygame.draw.arc(s, accent, (cx - 28, cy - 28, 56, 56), 0.4, 2.3, 4)
+            pygame.draw.line(s, accent, (cx - 4, cy - 28), (cx - 11, cy - 42), 2)
+            pygame.draw.line(s, accent, (cx + 4, cy - 28), (cx + 11, cy - 42), 2)
         else:  # face
             pygame.draw.circle(s, accent, (cx, cy), 30, 5)
             pygame.draw.circle(s, accent, (cx - 10, cy - 6), 4)

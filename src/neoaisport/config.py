@@ -14,6 +14,22 @@ GROUND_H = 80
 BASE_SPEED = 220.0
 SPEED_PER_POINT = 6.0
 
+# ---- Hứng Mưa (camera + tư thế/đầu) ----
+DROP_R = 16
+DROP_FALL = 250.0         # tốc độ rơi (px/s)
+DROP_SPAWN = 0.55         # giây giữa các giọt
+BASKET_W, BASKET_H = 130, 40
+BASKET_Y = H - 96
+RAIN_TIME = 45.0
+
+# ---- Đỡ Bóng (camera + bàn tay) ----
+BALL_R = 28
+BALL_GRAV = 900.0
+BOUNCE_V = 640.0          # vận tốc bật lên khi đỡ
+HIT_R = 60                # bán kính tay chạm bóng
+HIT_COOLDOWN = 0.22
+FLOOR_Y = H - 40
+
 # ---- Bắt Dế (camera + bàn tay) ----
 CATCH_FLOCK = 8           # số Dế giữ trên màn (đàn = cluster)
 CATCH_R = 48              # bán kính bắt (tay chạm Dế)
