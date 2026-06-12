@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neoaisport"
+version = "0.1.0"
+description = "Nền tảng game thể thao thị giác AI (camera + tay/cử chỉ/khuôn mặt/tư thế) trên NEO. Game #1: Bắt Dế."
+requires-python = ">=3.11"
+# mediapipe kéo theo opencv-contrib-python + numpy. Trên ARM/NEO, xem README để cài 'lean'
+# (--no-deps + opencv-contrib-python-headless) tránh trùng opencv.
+dependencies = ["pygame-ce>=2.5", "mediapipe>=0.10"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+neoaisport = "neoaisport.hub:main"
+batde = "neoaisport.batde.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+neoaisport = ["assets/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
