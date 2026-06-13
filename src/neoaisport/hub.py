@@ -15,18 +15,21 @@ from neoaisport.ui.sprites import draw_cricket, font, load_logo, scale_to
 from neoaisport.ui.widgets import center_text, round_rect, wordmark
 
 GAMES = [
-    dict(title="Bắt Dế", tech="Bàn tay (HandLandmarker)", move="Vẫy tay bắt đàn Dế",
+    dict(title="Bắt Dế", tech="Bàn tay", move="Vẫy tay bắt đàn Dế",
          module="neoaisport.batde.app", args=["--source", "camera"],
          accent=C.GREEN_CRICKET, icon="hand", ready=True),
-    dict(title="Hứng Mưa", tech="Tư thế đầu/thân (Pose)", move="Nghiêng người hứng giọt",
+    dict(title="Hứng Mưa", tech="Đầu · thân", move="Nghiêng người hứng giọt",
          module="neoaisport.huongmua.app", args=["--source", "camera"],
          accent=C.BLUE_ELECTRIC, icon="head", ready=True),
-    dict(title="Đỡ Bóng", tech="Bàn tay (HandLandmarker)", move="Vung tay giữ bóng",
+    dict(title="Đỡ Bóng", tech="Bàn tay", move="Vung tay giữ bóng",
          module="neoaisport.dobong.app", args=["--source", "camera"],
          accent=C.ORANGE_HOT, icon="ball", ready=True),
+    dict(title="Ball Dế", tech="Bàn chân", move="Đá penalty trái/phải/giữa",
+         module="neoaisport.ballde.app", args=["--source", "camera"],
+         accent=C.PINK_HOT, icon="foot", ready=True),
 ]
 
-TW, TH, GAP = 250, 320, 28
+TH, GAP = 320, 22
 
 
 def _bg(w, h):
@@ -54,13 +57,15 @@ class Hub:
         self.bg = _bg(C.W, C.H)
         self.sel = 0
         self.t = 0.0
+        n = len(GAMES)
+        self.tw = min(250, (C.W - 40 - (n - 1) * GAP) // n)   # tự co cho vừa nhiều thẻ
 
     def _x0(self):
         n = len(GAMES)
-        return (C.W - (n * TW + (n - 1) * GAP)) // 2
+        return (C.W - (n * self.tw + (n - 1) * GAP)) // 2
 
     def _rect(self, i):
-        return pygame.Rect(self._x0() + i * (TW + GAP), 250, TW, TH)
+        return pygame.Rect(self._x0() + i * (self.tw + GAP), 240, self.tw, TH)
 
     def _at(self, pos):
         for i in range(len(GAMES)):
@@ -168,6 +173,13 @@ class Hub:
             pygame.draw.arc(s, accent, (cx - 28, cy - 28, 56, 56), 0.4, 2.3, 4)
             pygame.draw.line(s, accent, (cx - 4, cy - 28), (cx - 11, cy - 42), 2)
             pygame.draw.line(s, accent, (cx + 4, cy - 28), (cx + 11, cy - 42), 2)
+        elif kind == "foot":
+            pygame.draw.circle(s, C.WHITE, (cx + 18, cy + 8), 16)   # bóng
+            pygame.draw.circle(s, C.INK, (cx + 18, cy + 8), 16, 2)
+            pygame.draw.line(s, accent, (cx - 22, cy - 18), (cx - 18, cy + 8), 9)  # cẳng chân
+            pygame.draw.line(s, accent, (cx - 18, cy + 8), (cx + 2, cy + 12), 9)   # bàn chân
+            d = 6 + int(4 * math.sin(self.t * 6))
+            pygame.draw.arc(s, C.GREEN_LIME, (cx + 30, cy - 12 - d, 24, 40), -1.0, 1.0, 3)  # vệt sút
         else:  # face
             pygame.draw.circle(s, accent, (cx, cy), 30, 5)
             pygame.draw.circle(s, accent, (cx - 10, cy - 6), 4)

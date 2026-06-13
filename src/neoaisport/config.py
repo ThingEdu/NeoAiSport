@@ -14,6 +14,14 @@ GROUND_H = 80
 BASE_SPEED = 220.0
 SPEED_PER_POINT = 6.0
 
+# ---- Ball Dế (camera + bàn chân) — đá penalty ----
+PEN_SHOTS = 5             # số lượt sút mỗi người
+SHOT_TIME = 0.95         # thời gian bóng bay + thủ môn bay (giây)
+KICK_DIST = 110          # chân dịch > ngần này (px/bước) = phát hiện cú sút
+KICK_DIR_DX = 70         # |dịch ngang| > ngần này → trái/phải, dưới = giữa
+PEN_GOAL_Y = 70          # đáy khung thành (y) trên màn
+PEN_SPOT_Y = H - 150     # chấm phạt đền
+
 # ---- Hứng Mưa (camera + tư thế/đầu) ----
 DROP_R = 16
 DROP_FALL = 250.0         # tốc độ rơi (px/s)

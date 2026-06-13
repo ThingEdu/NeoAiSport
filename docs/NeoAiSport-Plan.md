@@ -35,6 +35,7 @@ nhẹ/ổn; NeoAiSport gom thị giác AI với **repo + domain + stack riêng**
 | **Bắt Dế** | HandLandmarker | vẫy tay bắt đàn Dế | ✅ |
 | **Hứng Mưa** | PoseLandmarker (đầu/thân) | nghiêng người hứng giọt mưa | ✅ |
 | **Đỡ Bóng** | HandLandmarker | vung tay giữ bóng trên không (thể thao) | ✅ |
+| **Ball Dế** | PoseLandmarker (2 cổ chân) | đá penalty trái/phải/giữa theo hướng chân vung | ✅ |
 | **Mặt Cười** | FaceLandmarker | há miệng/biểu cảm điều khiển | 🔜 |
 | **Oẳn Tù Tì / vẫy tay** | GestureRecognizer | cử chỉ tay | 🔜 |
 | **Trò chơi dân gian camera** | Pose/Hand | nhảy dây ảo, rồng rắn, vẫy bắt… | 💡 |

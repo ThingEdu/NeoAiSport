@@ -11,6 +11,7 @@ khuôn mặt, đầu, tư thế) qua **camera** — không cần tay cầm. Cùn
 | **Bắt Dế** | HandLandmarker (bàn tay) | vẫy tay bắt đàn Dế | ✅ |
 | **Hứng Mưa** | PoseLandmarker (đầu/thân) | nghiêng người hứng giọt | ✅ |
 | **Đỡ Bóng** | HandLandmarker (bàn tay) | vung tay giữ bóng trên không | ✅ |
+| **Ball Dế** | PoseLandmarker (2 cổ chân) | đá penalty trái/phải/giữa theo hướng chân vung | ✅ |
 | Mặt Cười · Cử Chỉ · trò chơi dân gian | Face / Gesture / Pose | biểu cảm, cử chỉ, toàn thân | 💡 |
 
 → Phân tích & quy hoạch: [`docs/NeoAiSport-Plan.md`](docs/NeoAiSport-Plan.md)
@@ -23,7 +24,7 @@ make install-lean   # gọn cho ARM/NEO: tránh trùng opencv (headless)
 make run            # màn tổng — chọn game thị giác (Bắt Dế / Hứng Mưa / Đỡ Bóng)
 make run-batde      # Bắt Dế bằng camera
 make run-mouse      # Bắt Dế bằng chuột (không cần webcam)
-make test           # 19 test engine (3 game)
+make test           # 26 test engine (4 game)
 ```
 Hoặc: `python -m neoaisport.hub` · `… .batde.app` · `… .huongmua.app` · `… .dobong.app`
 (thêm `--source mouse` để chơi bằng chuột khi không có webcam)

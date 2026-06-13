@@ -161,9 +161,11 @@ class HandCamera(_CameraBase):
 
 
 class PoseCamera(_CameraBase):
-    def __init__(self, max_bodies: int = 2, cam: int = 0):
+    # landmarks Pose: 0 = mũi (đầu); 27/28 = cổ chân trái/phải
+    def __init__(self, max_bodies: int = 2, cam: int = 0, landmarks=(0,)):
         super().__init__(cam)
         self._n = max_bodies
+        self._lms = landmarks
         if not os.path.exists(_POSE_MODEL):
             raise RuntimeError(f"Thiếu model {_POSE_MODEL}")
         self._start()
@@ -178,14 +180,19 @@ class PoseCamera(_CameraBase):
 
     def _detect(self, lm, mp_img, ts):
         res = lm.detect_for_video(mp_img, ts)
-        return [(p[0].x * C.W, p[0].y * C.H) for p in res.pose_landmarks]      # mũi (đầu)
+        return [(pose[i].x * C.W, pose[i].y * C.H)
+                for pose in res.pose_landmarks for i in self._lms]
 
 
 def get_source(kind: str = "hand", prefer: str = "camera", count: int = 2):
-    """kind='hand' (tay) | 'pose' (tư thế/đầu). Fallback chuột nếu không có camera."""
+    """kind='hand' (tay) | 'pose' (đầu) | 'foot' (2 cổ chân). Fallback chuột nếu không có camera."""
     if prefer == "camera":
         try:
-            return HandCamera(max_hands=count) if kind == "hand" else PoseCamera(max_bodies=count)
+            if kind == "hand":
+                return HandCamera(max_hands=count)
+            if kind == "foot":
+                return PoseCamera(max_bodies=1, landmarks=(27, 28))
+            return PoseCamera(max_bodies=count)               # pose (mũi/đầu)
         except Exception as exc:
             print(f"[vision] {exc} → fallback chuột")
     return MouseHands()
