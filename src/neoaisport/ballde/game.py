@@ -13,6 +13,15 @@ from dataclasses import dataclass
 from neoaisport import config as C
 
 DIRS = ("L", "C", "R")
+# Chỉ số bàn chân trong chuỗi 8 điểm chân [hôngA,gốiA,cổchânA,bànchânA, hôngB,...]
+FOOT_IDX = (3, 7)
+
+
+def feet_of(pts):
+    """Lấy 2 bàn chân từ chuỗi chân (8 điểm). Fallback chuột: trả nguyên (1 điểm)."""
+    if len(pts) >= 8:
+        return [pts[FOOT_IDX[0]], pts[FOOT_IDX[1]]]
+    return list(pts)
 
 
 @dataclass
@@ -94,7 +103,7 @@ class PenaltyController:
         if self.state != self.PLAY:
             return ev
 
-        cur = sorted(pts, key=lambda p: p[0])
+        cur = sorted(feet_of(pts), key=lambda p: p[0])
         if self.phase == "ready":
             best_move, best_dx = 0.0, 0.0
             for i, p in enumerate(cur):

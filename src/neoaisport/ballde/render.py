@@ -1,5 +1,7 @@
-"""Lớp vẽ Ball Dế — sân + khung thành + thủ môn Dế + bóng + quầng sáng ở chân."""
+"""Lớp vẽ Ball Dế — sân + khung thành + thủ môn Dế + bóng + khung chân + hướng sút."""
 from __future__ import annotations
+
+import math
 
 import pygame
 
@@ -65,14 +67,20 @@ class PenaltyRenderer:
         else:
             self._ball(C.W / 2, C.PEN_SPOT_Y, 18)
 
-        for f in feet:                          # quầng sáng năng lượng ở bàn chân
-            energy_glow(self.screen, f[0], f[1], 46, C.GREEN_LIME, self.t)
+        self._legs(feet)                        # khung chân + bàn chân + quầng sáng
 
-        if ctrl.phase == "shot" and ctrl.ball_t > 0.7:
-            if ctrl.scored:
-                center_text(self.screen, self.f_hero, "BÀN!", C.W // 2, 150, C.ORANGE_HOT, panel=True)
-            else:
-                center_text(self.screen, self.f_hero, "CẢN!", C.W // 2, 150, C.BLUE_ELECTRIC, panel=True)
+        # thể hiện HƯỚNG SÚT
+        if ctrl.phase == "shot":
+            self._kick_dir(ctrl)
+            if ctrl.ball_t > 0.7:
+                txt, col = ("BÀN!", C.ORANGE_HOT) if ctrl.scored else ("CẢN!", C.BLUE_ELECTRIC)
+                center_text(self.screen, self.f_hero, txt, C.W // 2, 150, col, panel=True)
+
+        # nhắc nếu camera chưa thấy chân
+        if ctrl.state in (ctrl.PLAY, ctrl.COUNTDOWN) and self.source_name != "mouse" \
+                and not self._feet_visible(feet):
+            center_text(self.screen, self.f_md, "Lùi xa để camera thấy CẢ CHÂN",
+                        C.W // 2, C.H - 100, C.PINK_HOT, panel=True)
 
         if ctrl.state == ctrl.PLAY:
             self._hud(ctrl)
@@ -84,6 +92,44 @@ class PenaltyRenderer:
         if ctrl.state == ctrl.RESULT:
             self._result(ctrl)
         wordmark(self.screen, self.f_sm, self.logo_sm, "Ball Dế · NeoAiSport")
+
+    def _legs(self, pts):
+        """Vẽ khung chân (hông–gối–cổ chân–bàn chân) + bàn chân + quầng sáng."""
+        s = self.screen
+        if len(pts) >= 8:
+            for chain in (pts[0:4], pts[4:8]):
+                ip = [(int(p[0]), int(p[1])) for p in chain]
+                pygame.draw.lines(s, C.WHITE, False, ip, 6)
+                for p in ip[:3]:
+                    pygame.draw.circle(s, C.BLUE_ELECTRIC, p, 7)
+                    pygame.draw.circle(s, C.WHITE, p, 3)
+                foot = ip[3]
+                energy_glow(s, foot[0], foot[1], 46, C.GREEN_LIME, self.t)
+                pygame.draw.circle(s, C.GREEN_LIME, foot, 12)
+                pygame.draw.circle(s, C.INK, foot, 12, 2)
+        else:
+            for f in pts:                                   # fallback chuột
+                energy_glow(s, f[0], f[1], 46, C.GREEN_LIME, self.t)
+
+    def _feet_visible(self, pts):
+        return len(pts) >= 8 and pts[3][1] < C.H and pts[7][1] < C.H
+
+    def _kick_dir(self, ctrl):
+        s = self.screen
+        span = (GOAL_R - GOAL_L) // 3
+        zx = {"L": GOAL_L, "C": GOAL_L + span, "R": GOAL_L + 2 * span}[ctrl.kick_dir]
+        hl = pygame.Surface((span, GOAL_H), pygame.SRCALPHA)
+        hl.fill((*C.GREEN_LIME, 90))
+        s.blit(hl, (zx, C.PEN_GOAL_Y))
+        sx, sy = C.W // 2, int(C.PEN_SPOT_Y)
+        tx, ty = int(_zone_x(ctrl.kick_dir)), C.PEN_GOAL_Y + GOAL_H + 24
+        pygame.draw.line(s, C.GREEN_LIME, (sx, sy), (tx, ty), 6)
+        ang = math.atan2(ty - sy, tx - sx)
+        for da in (2.5, -2.5):
+            ex, ey = tx - 18 * math.cos(ang + da), ty - 18 * math.sin(ang + da)
+            pygame.draw.line(s, C.GREEN_LIME, (tx, ty), (int(ex), int(ey)), 6)
+        labels = {"L": "SÚT TRÁI", "C": "SÚT GIỮA", "R": "SÚT PHẢI"}
+        center_text(s, self.f_md, labels[ctrl.kick_dir], C.W // 2, C.H - 92, C.GREEN_CRICKET, panel=True)
 
     def _pitch(self):
         self.screen.fill(PITCH)

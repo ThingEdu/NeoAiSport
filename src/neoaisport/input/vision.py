@@ -191,7 +191,9 @@ def get_source(kind: str = "hand", prefer: str = "camera", count: int = 2):
             if kind == "hand":
                 return HandCamera(max_hands=count)
             if kind == "foot":
-                return PoseCamera(max_bodies=1, landmarks=(27, 28))
+                # chuỗi 2 chân để VẼ khung + bám bàn chân:
+                # [hôngA, gốiA, cổ chânA, bàn chânA, hôngB, gốiB, cổ chânB, bàn chânB]
+                return PoseCamera(max_bodies=1, landmarks=(23, 25, 27, 31, 24, 26, 28, 32))
             return PoseCamera(max_bodies=count)               # pose (mũi/đầu)
         except Exception as exc:
             print(f"[vision] {exc} → fallback chuột")
