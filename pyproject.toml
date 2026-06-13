@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "neoaisport"
 version = "0.1.0"
 description = "Nền tảng game thể thao thị giác AI (camera + tay/cử chỉ/khuôn mặt/tư thế) trên NEO. Game #1: Bắt Dế."
+license = { text = "MIT" }
 requires-python = ">=3.11"
 # mediapipe kéo theo opencv-contrib-python + numpy. Trên ARM/NEO, xem README để cài 'lean'
 # (--no-deps + opencv-contrib-python-headless) tránh trùng opencv.
