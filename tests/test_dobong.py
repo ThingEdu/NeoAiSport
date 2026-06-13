@@ -68,3 +68,17 @@ def test_duel_winner_is_surviving_player():
     c.balls[0].y = C.FLOOR_Y          # P1 rớt
     c.update(1 / 60, [])
     assert c.state == c.RESULT and c.winner == 1
+
+
+def test_duel_balls_confined_to_own_half():
+    c = VolleyController()
+    c.press(1)
+    _play(c)
+    b0, b1 = c.balls
+    # mỗi bóng giới hạn trong nửa của mình (vạch giữa = tường)
+    assert b0.xmax <= C.W / 2 and b1.xmin >= C.W / 2
+    # bóng P1 lao sang vạch giữa → nảy lại phía mình (vx đổi sang âm), không vượt nửa
+    b0.x = b0.xmax - 1
+    b0.vx, b0.vy = 500, 0
+    b0.update(1 / 60)
+    assert b0.x <= C.W / 2 and b0.vx < 0

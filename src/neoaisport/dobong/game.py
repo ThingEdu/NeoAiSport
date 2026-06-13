@@ -21,11 +21,14 @@ class VolleyEvents:
 
 
 class Ball:
-    def __init__(self, x, y):
+    def __init__(self, x, y, xmin=None, xmax=None):
         self.x, self.y = float(x), float(y)
         self.vx = self.vy = 0.0
         self.alive = True
         self.cooldown = 0.0
+        # giới hạn ngang: đấu 2 người dùng VẠCH GIỮA làm tường → bóng nảy lại phía mình
+        self.xmin = C.BALL_R if xmin is None else xmin
+        self.xmax = C.W - C.BALL_R if xmax is None else xmax
 
     def update(self, dt):
         if self.cooldown > 0:
@@ -33,10 +36,10 @@ class Ball:
         self.vy += C.BALL_GRAV * dt
         self.x += self.vx * dt
         self.y += self.vy * dt
-        if self.x < C.BALL_R:
-            self.x, self.vx = C.BALL_R, abs(self.vx)
-        elif self.x > C.W - C.BALL_R:
-            self.x, self.vx = C.W - C.BALL_R, -abs(self.vx)
+        if self.x < self.xmin:
+            self.x, self.vx = self.xmin, abs(self.vx)        # nảy về phải (nửa mình)
+        elif self.x > self.xmax:
+            self.x, self.vx = self.xmax, -abs(self.vx)       # nảy về trái (nửa mình)
         if self.y < C.BALL_R:
             self.y, self.vy = C.BALL_R, abs(self.vy) * 0.5
 
@@ -65,7 +68,11 @@ class VolleyController:
             self.balls = [Ball(C.W / 2, 120)]
         else:
             self.counts = [0, 0]
-            self.balls = [Ball(C.W * 0.28, 120), Ball(C.W * 0.72, 120)]
+            mid = C.W / 2
+            self.balls = [
+                Ball(C.W * 0.25, 120, xmin=C.BALL_R, xmax=mid - C.BALL_R),       # P1: nửa trái
+                Ball(C.W * 0.75, 120, xmin=mid + C.BALL_R, xmax=C.W - C.BALL_R),  # P2: nửa phải
+            ]
         self.count = C.COUNTDOWN
         self.result = ""
         self.winner = None
