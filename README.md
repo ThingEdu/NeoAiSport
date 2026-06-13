@@ -12,8 +12,8 @@ khuôn mặt, đầu, tư thế) qua **camera** — không cần tay cầm. Cùn
 |---|---|
 | **Bắt Dế** — vẫy tay bắt đàn Dế (quầng sáng năng lượng ở tay) | **Hứng Mưa** — nghiêng người, rổ theo bạn hứng giọt |
 | ![Bắt Dế](docs/img/batde.png) | ![Hứng Mưa](docs/img/huongmua.png) |
-| **Đỡ Bóng** — đấu 2 người, bóng nảy ở vạch giữa | **Ball Dế** — đá penalty: khung chân + hướng sút |
-| ![Đỡ Bóng](docs/img/dobong.png) | ![Ball Dế](docs/img/ballde.png) |
+| **Đỡ Bóng** — đấu 2 người, bóng nảy ở vạch giữa | |
+| ![Đỡ Bóng](docs/img/dobong.png) | |
 
 ## Game
 
@@ -22,8 +22,9 @@ khuôn mặt, đầu, tư thế) qua **camera** — không cần tay cầm. Cùn
 | **Bắt Dế** | HandLandmarker (bàn tay) | vẫy tay bắt đàn Dế | ✅ |
 | **Hứng Mưa** | PoseLandmarker (đầu/thân) | nghiêng người hứng giọt | ✅ |
 | **Đỡ Bóng** | HandLandmarker (bàn tay) | vung tay giữ bóng trên không | ✅ |
-| **Ball Dế** | PoseLandmarker (2 cổ chân) | đá penalty trái/phải/giữa theo hướng chân vung | ✅ |
 | Mặt Cười · Cử Chỉ · trò chơi dân gian | Face / Gesture / Pose | biểu cảm, cử chỉ, toàn thân | 💡 |
+
+> _Ball Dế (đá penalty bằng chân) đã bỏ — bám bàn chân qua Pose không đủ ổn định trong phòng chật. Sẽ cân nhắc lại với tín hiệu thân/gối ổn định hơn._
 
 → Phân tích & quy hoạch: [`docs/NeoAiSport-Plan.md`](docs/NeoAiSport-Plan.md)
 
@@ -35,7 +36,7 @@ make install-lean   # gọn cho ARM/NEO: tránh trùng opencv (headless)
 make run            # màn tổng — chọn game thị giác (Bắt Dế / Hứng Mưa / Đỡ Bóng)
 make run-batde      # Bắt Dế bằng camera
 make run-mouse      # Bắt Dế bằng chuột (không cần webcam)
-make test           # 26 test engine (4 game)
+make test           # 20 test engine (3 game)
 ```
 Hoặc: `python -m neoaisport.hub` · `… .batde.app` · `… .huongmua.app` · `… .dobong.app`
 (thêm `--source mouse` để chơi bằng chuột khi không có webcam)

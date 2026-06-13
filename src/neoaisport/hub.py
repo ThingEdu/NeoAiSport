@@ -24,9 +24,6 @@ GAMES = [
     dict(title="Đỡ Bóng", tech="Bàn tay", move="Vung tay giữ bóng",
          module="neoaisport.dobong.app", args=["--source", "camera"],
          accent=C.ORANGE_HOT, icon="ball", ready=True),
-    dict(title="Ball Dế", tech="Bàn chân", move="Đá penalty trái/phải/giữa",
-         module="neoaisport.ballde.app", args=["--source", "camera"],
-         accent=C.PINK_HOT, icon="foot", ready=True),
 ]
 
 TH, GAP = 320, 22
