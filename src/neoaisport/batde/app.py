@@ -22,7 +22,7 @@ from neoaisport.ui.sound import SoundManager
 def run(source="camera", db_path="neoaisport.db", sound=True):
     pygame.init()
     screen = pygame.display.set_mode((C.W, C.H))
-    pygame.display.set_caption("Bắt Dế — NeoArcade · Dế Foundation")
+    pygame.display.set_caption("Bắt Dế — NeoAiSport · Dế Foundation")
     clock = pygame.time.Clock()
 
     lb = Leaderboard(db_path)
@@ -63,7 +63,7 @@ def run(source="camera", db_path="neoaisport.db", sound=True):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Bắt Dế — NeoArcade")
+    ap = argparse.ArgumentParser(description="Bắt Dế — NeoAiSport")
     ap.add_argument("--source", default="camera", choices=["camera", "mouse"])
     ap.add_argument("--db", default=os.environ.get("NEOARCADE_DB", "neoaisport.db"))
     ap.add_argument("--no-sound", action="store_true")

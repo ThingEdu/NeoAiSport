@@ -8,6 +8,38 @@ import pygame
 
 from neoaisport import config as C
 
+_glow_cache: dict = {}
+
+
+def _glow_surface(radius, color):
+    """Đĩa sáng radial (mềm dần ra ngoài) + lõi trắng — vẽ 1 lần, cache lại."""
+    key = (radius, color)
+    if key not in _glow_cache:
+        d = radius * 2
+        s = pygame.Surface((d, d), pygame.SRCALPHA)
+        for r in range(radius, 0, -2):
+            a = int(130 * (1 - r / radius) ** 2)          # đậm ở giữa, tan dần ra rìa
+            pygame.draw.circle(s, (*color, a), (radius, radius), r)
+        pygame.draw.circle(s, (255, 255, 255, 170), (radius, radius), max(4, radius // 6))
+        _glow_cache[key] = s
+    return _glow_cache[key]
+
+
+def energy_glow(screen, x, y, radius, color, t=0.0):
+    """Vùng sáng 'năng lượng xanh' toả ở bàn tay + 2 gợn sóng lan ra (lan toả dần)."""
+    x, y = int(x), int(y)
+    g = _glow_surface(radius, color)
+    screen.blit(g, g.get_rect(center=(x, y)), special_flags=pygame.BLEND_RGBA_ADD)
+    for phase in (0.0, 0.5):
+        k = ((t * 0.9 + phase) % 1.0)                     # 0→1 rồi lặp
+        rr = int(radius * (0.4 + 0.8 * k))
+        a = max(0, int(150 * (1 - k)))
+        if a > 0 and rr > 2:
+            ring = pygame.Surface((rr * 2 + 6, rr * 2 + 6), pygame.SRCALPHA)
+            pygame.draw.circle(ring, (*color, a), (rr + 3, rr + 3), rr, 3)
+            screen.blit(ring, ring.get_rect(center=(x, y)))
+    pygame.draw.circle(screen, (255, 255, 255), (x, y), 4)   # tâm chính xác
+
 
 def round_rect(screen, rect, fill, border=None, bw=0, rad=16):
     if len(fill) == 4:
@@ -48,7 +80,7 @@ def pill(screen, font, cx, cy, txt, color):
     screen.blit(img, r)
 
 
-def wordmark(screen, font_sm, logo_sm, label="NeoArcade"):
+def wordmark(screen, font_sm, logo_sm, label="NeoAiSport"):
     if logo_sm:
         lw, lh = logo_sm.get_size()
         txt = font_sm.render(label, True, C.INK)

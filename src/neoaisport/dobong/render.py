@@ -6,7 +6,7 @@ import pygame
 from neoaisport import config as C
 from neoaisport.ui.sprites import font, load_logo, scale_to
 from neoaisport.ui.widgets import (
-    Particle, center_text, draw_text, mode_card, pill, round_rect, wordmark,
+    Particle, center_text, draw_text, energy_glow, mode_card, pill, round_rect, wordmark,
 )
 
 
@@ -23,6 +23,7 @@ class VolleyRenderer:
     def __init__(self, screen, source_name="camera"):
         self.screen = screen
         self.source_name = source_name
+        self.t = 0.0
         self.f_hero = font(72)
         self.f_big = font(46)
         self.f_md = font(26)
@@ -37,6 +38,7 @@ class VolleyRenderer:
 
     def draw(self, ctrl, ev, lb, dt, bg=None, points=None):
         hands = points or []
+        self.t += dt
         for i, x, y in ev.hits:
             acc = C.BLUE_ELECTRIC if (ctrl.mode == "solo" or i == 0) else C.ORANGE_HOT
             for _ in range(12):
@@ -87,9 +89,7 @@ class VolleyRenderer:
         pygame.draw.line(self.screen, accent, (x + 4, y - C.BALL_R), (x + 10, y - C.BALL_R - 12), 2)
 
     def _cursor(self, x, y, accent):
-        x, y = int(x), int(y)
-        pygame.draw.circle(self.screen, accent, (x, y), C.HIT_R, 5)
-        pygame.draw.circle(self.screen, C.WHITE, (x, y), 6)
+        energy_glow(self.screen, x, y, int(C.HIT_R * 1.4), accent, self.t)
 
     def _hud(self, ctrl):
         if ctrl.mode == "solo":

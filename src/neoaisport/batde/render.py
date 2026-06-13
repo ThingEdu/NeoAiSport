@@ -11,6 +11,7 @@ from neoaisport.ui.widgets import (
     Particle,
     center_text,
     draw_text,
+    energy_glow,
     mode_card,
     pill,
     round_rect,
@@ -24,6 +25,7 @@ class CatchRenderer:
     def __init__(self, screen, source_name="camera"):
         self.screen = screen
         self.source_name = source_name
+        self.t = 0.0
         self.f_hero = font(76)
         self.f_big = font(46)
         self.f_md = font(26)
@@ -64,6 +66,7 @@ class CatchRenderer:
 
     def draw(self, ctrl, ev, lb, dt, bg=None, hands=None):
         hands = hands or []
+        self.t += dt
         for pl, x, y in ev.caught:
             for _ in range(14):
                 self.fx.append(Particle(x, y, C.GREEN_LIME))
@@ -75,7 +78,7 @@ class CatchRenderer:
             self._menu(ctrl, lb, bg)
             for h in hands:                         # hiện con trỏ tay ngay ở menu
                 self._cursor(h[0], h[1], C.GREEN_LIME)
-            wordmark(self.screen, self.f_sm, self.logo_sm, "Bắt Dế · NeoArcade")
+            wordmark(self.screen, self.f_sm, self.logo_sm, "Bắt Dế · NeoAiSport")
             return
 
         if bg is not None:
@@ -100,14 +103,10 @@ class CatchRenderer:
             center_text(self.screen, self.f_md, "Vẫy tay sẵn sàng!", C.W // 2, C.H // 2 + 70, C.WHITE)
         if ctrl.state == ctrl.RESULT:
             self._result(ctrl, lb)
-        wordmark(self.screen, self.f_sm, self.logo_sm, "Bắt Dế · NeoArcade")
+        wordmark(self.screen, self.f_sm, self.logo_sm, "Bắt Dế · NeoAiSport")
 
     def _cursor(self, x, y, accent):
-        x, y = int(x), int(y)
-        pygame.draw.circle(self.screen, accent, (x, y), C.CATCH_R, 5)
-        pygame.draw.circle(self.screen, C.WHITE, (x, y), C.CATCH_R, 1)
-        pygame.draw.circle(self.screen, accent, (x, y), 7)
-        pygame.draw.circle(self.screen, C.WHITE, (x, y), 3)
+        energy_glow(self.screen, x, y, int(C.CATCH_R * 1.5), accent, self.t)
 
     def _hud(self, ctrl):
         secs = max(0, int(ctrl.timer + 0.99))
@@ -147,7 +146,7 @@ class CatchRenderer:
         draw_cricket(s, C.W // 2 + 250, 160, C.ORANGE_HOT, 1.0, 0.8, -6)
         draw_cricket(s, C.W // 2 + 150, 150, C.GREEN_CRICKET, 1.0, 0.5, 10)
         center_text(s, self.f_hero, "Bắt Dế", C.W // 2, 150, C.BLUE_ELECTRIC)
-        center_text(s, self.f_sm, "NeoArcade · vẫy tay bắt đàn Dế", C.W // 2, 200, C.GREEN_LIME)
+        center_text(s, self.f_sm, "NeoAiSport · vẫy tay bắt đàn Dế", C.W // 2, 200, C.GREEN_LIME)
         mode_card(s, self.f_big, self.f_md, C.W // 2 - 180, 330, "SOLO", "Đếm giờ 45s", "Nút 1 · SPACE", C.BLUE_ELECTRIC)
         mode_card(s, self.f_big, self.f_md, C.W // 2 + 180, 330, "ĐẤU 2 NGƯỜI", "Hai tay tranh đàn", "Nút 2 · ENTER", C.ORANGE_HOT)
         top = lb.top("batde", limit=3) if lb else []
