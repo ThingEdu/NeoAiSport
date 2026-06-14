@@ -163,8 +163,8 @@ class Hub:
 
     def _neo_badge(self, xr, yc):
         s = self.screen
-        t1 = self.f_sm.render("NEO ONE", True, C.BLUE_ELECTRIC)
-        t2 = self.f_xs.render("powered by ThingEdu", True, C.GREEN_CRICKET)
+        t1 = self.f_sm.render("NEO One", True, C.BLUE_ELECTRIC)
+        t2 = self.f_xs.render("Sản phẩm của ThingEdu", True, C.GREEN_CRICKET)
         w = max(t1.get_width(), t2.get_width()) + 26
         pill = pygame.Rect(xr - w, yc - 23, w, 46)
         round_rect(s, pill, C.WHITE, C.BLUE_ELECTRIC, 2, 12)
