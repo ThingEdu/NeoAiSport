@@ -27,6 +27,7 @@ khuôn mặt, đầu, tư thế) qua **camera** — không cần tay cầm. Cùn
 > _Ball Dế (đá penalty bằng chân) đã bỏ — bám bàn chân qua Pose không đủ ổn định trong phòng chật. Sẽ cân nhắc lại với tín hiệu thân/gối ổn định hơn._
 
 → Phân tích & quy hoạch: [`docs/NeoAiSport-Plan.md`](docs/NeoAiSport-Plan.md)
+→ Cài đặt trên thiết bị: [`docs/NEO-ONE-INSTALL.md`](docs/NEO-ONE-INSTALL.md) (**NEO One** ARM64/Armbian — gồm công thức mediapipe lean)
 
 ## Chạy
 
