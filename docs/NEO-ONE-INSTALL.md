@@ -170,6 +170,36 @@ Từ giờ chỉ cần gõ: `neoaisport`
 | Camera không mở | `ls -l /dev/video0`; thêm user vào nhóm video: `sudo usermod -aG video $USER` rồi đăng nhập lại; thử `--source mouse`. |
 | Cửa sổ không hiện qua SSH | Đặt `DISPLAY=:0`; cần phiên X chạy trên màn hình máy (`ls /tmp/.X11-unix/` → `X0`). |
 | FPS thấp / giật | Bình thường trên ARM; engine đã chạy vision ở luồng riêng + capture 640×480. Xem [`docs/NeoAiSport-Plan.md`](NeoAiSport-Plan.md) §5. |
+| **Chữ tiếng Việt hiện ô trống / mất dấu** (ạ ế ổ ọ ấ ố ứ…) | Máy thiếu font phủ **Latin Extended Additional (U+1EA0+)**. Code đã tự fallback sang DejaVu/Noto; nếu vẫn lỗi: `sudo apt install -y fonts-dejavu-core fonts-noto-core`. Xem §9. |
+
+---
+
+## 9. Font tiếng Việt
+
+Văn bản trong game được vẽ bằng `pygame` (`src/neoaisport/ui/sprites.py` → `font()`).
+Trước đây `font()` chỉ dò các font macOS (Arial Rounded, Avenir, Nunito…); trên NEO/Linux
+không có font nào khớp nên `pygame` rơi về **font mặc định `freesansbold`**, vốn **không có
+khối Unicode Latin Extended Additional (U+1EA0–U+1EF9)** — đúng các chữ Việt có dấu nặng/hỏi
+chồng dấu (ạ ả ấ ầ ế ệ ổ ộ ọ ố ứ…) → hiện thành ô trống (tofu).
+
+**Cách fix trong code** (đã áp dụng): `font()` dò **file font** qua `pygame.font.match_font`
+theo thứ tự — ưu tiên font bo tròn trên macOS, rồi **Noto Sans / DejaVu Sans trên Linux/NEO**
+(cả hai phủ đủ chữ Việt) — và nạp bằng `pygame.font.Font(path)`. Nhờ vậy:
+- **macOS**: vẫn dùng Arial Rounded / Avenir (đúng brand).
+- **NEO/Linux**: tự dùng **DejaVu Sans Bold** (`fonts-dejavu-core`, có sẵn trên Armbian).
+
+**Giữ brand bo tròn trên NEO (tùy chọn):** thả file `Nunito-Bold.ttf` (OFL, có hỗ trợ
+tiếng Việt) vào `src/neoaisport/assets/`. `font()` sẽ tự ưu tiên dùng font bundled này trên
+mọi máy, không cần đổi code.
+
+Kiểm tra nhanh font có đủ chữ Việt không:
+
+```bash
+.venv/bin/python -c "import pygame; pygame.init(); \
+from neoaisport.ui.sprites import font,_font_file; print('font:',_font_file()); \
+m=font(24).metrics('ạếổọấốứảầ'); print('thiếu glyph?', any(x is None for x in m))"
+# 'thiếu glyph? False' = OK
+```
 
 ---
 
