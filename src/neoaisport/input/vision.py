@@ -29,6 +29,28 @@ EMA = 0.5                   # hệ số làm mượt (cao = bám nhanh, thấp =
 HOLD_FRAMES = 8             # giữ vị trí khi mất nhận diện thoáng qua
 
 
+def _open_camera(cv2, cam: int | None):
+    """Mở webcam, trả (cap, index) hoặc (None, None).
+
+    Trên NEO/Linux camera thật có thể KHÔNG ở index 0 (các node /dev/video phụ:
+    metadata, obsensor… mở 0 thất bại). Nên khi cam=None ta tự dò: ưu tiên biến môi
+    trường NEOAISPORT_CAM, rồi quét 0..9 lấy index ĐẦU TIÊN mở được VÀ đọc được frame.
+    """
+    if cam is not None:
+        candidates = [cam]
+    else:
+        env = os.environ.get("NEOAISPORT_CAM", "")
+        candidates = [int(env)] if env.strip().lstrip("-").isdigit() else list(range(10))
+    for idx in candidates:
+        cap = cv2.VideoCapture(idx)
+        if cap.isOpened():
+            ok, frame = cap.read()
+            if ok and frame is not None:
+                return cap, idx
+        cap.release()
+    return None, None
+
+
 class MouseHands:
     name = "mouse"
     has_camera = False
@@ -46,12 +68,12 @@ class _CameraBase:
     name = "camera"
     has_camera = True
 
-    def __init__(self, cam: int = 0):
+    def __init__(self, cam: int | None = None):
         import cv2
         self.cv2 = cv2
-        self.cap = cv2.VideoCapture(cam)
-        if not self.cap.isOpened():
-            raise RuntimeError("Không mở được webcam")
+        self.cap, self.cam_index = _open_camera(cv2, cam)
+        if self.cap is None:
+            raise RuntimeError("Không mở được webcam (đã dò /dev/video0..9)")
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAP_W)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAP_H)
         self._lock = threading.Lock()
@@ -140,7 +162,7 @@ class _CameraBase:
 
 
 class HandCamera(_CameraBase):
-    def __init__(self, max_hands: int = 2, cam: int = 0):
+    def __init__(self, max_hands: int = 2, cam: int | None = None):
         super().__init__(cam)
         self._n = max_hands
         if not os.path.exists(_HAND_MODEL):
@@ -162,7 +184,7 @@ class HandCamera(_CameraBase):
 
 class PoseCamera(_CameraBase):
     # landmarks Pose: 0 = mũi (đầu); 27/28 = cổ chân trái/phải
-    def __init__(self, max_bodies: int = 2, cam: int = 0, landmarks=(0,)):
+    def __init__(self, max_bodies: int = 2, cam: int | None = None, landmarks=(0,)):
         super().__init__(cam)
         self._n = max_bodies
         self._lms = landmarks
