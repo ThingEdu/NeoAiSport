@@ -1,6 +1,7 @@
 """Vẽ mascot con Dế (bám sát logo Dế Foundation) + nạp logo. Cần pygame."""
 from __future__ import annotations
 
+import functools
 import math
 import os
 
@@ -11,9 +12,35 @@ from neoaisport import config as C
 ASSET_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
 FONT_STACK = "arialroundedmtbold,avenirnextrounded,avenirnext,nunito,inter,helveticaneue,arial"
+# Dò font cài trên máy theo thứ tự: ưu tiên bo tròn (macOS), rồi font phủ ĐỦ chữ Việt
+# trên Linux/NEO (Noto Sans, DejaVu Sans). Tránh để SysFont rơi về font mặc định của
+# pygame (freesansbold) vì nó KHÔNG có khối Latin Extended Additional U+1EA0+ (ạ ế ổ ọ…).
+_FONT_NAMES = ("arialroundedmtbold", "avenirnextrounded", "avenirnext", "nunito",
+               "inter", "helveticaneue", "notosans", "dejavusans", "arial")
+
+
+@functools.lru_cache(maxsize=1)
+def _font_file() -> str | None:
+    # 1) font bundled trong assets (thả Nunito-Bold.ttf vào đây để giữ brand bo tròn mọi máy)
+    for name in ("Nunito-Bold.ttf", "brand.ttf"):
+        p = os.path.join(ASSET_DIR, name)
+        if os.path.exists(p):
+            return p
+    # 2) font hệ thống đầu tiên dò được (macOS: Arial Rounded; NEO: DejaVu Sans)
+    for name in _FONT_NAMES:
+        p = pygame.font.match_font(name, bold=True)
+        if p:
+            return p
+    return None
 
 
 def font(size: int, bold: bool = True):
+    path = _font_file()
+    if path:
+        f = pygame.font.Font(path, size)
+        if bold and "bold" not in os.path.basename(path).lower():
+            f.set_bold(True)        # chỉ in đậm tổng hợp khi file font chưa phải bản Bold
+        return f
     return pygame.font.SysFont(FONT_STACK, size, bold=bold)
 
 
