@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 import threading
+import time
 
 import pygame
 
@@ -105,11 +106,17 @@ class _CameraBase:
         self._prev: list = []
         self._hold = 0
         self._stop = False
-        self._thread = None
+        self._latest_rgb = None          # frame mới nhất cho luồng nhận diện
+        self._latest_rgb_id = 0
+        self._cap_thread = None
+        self._det_thread = None
 
     def _start(self):
-        self._thread = threading.Thread(target=self._loop, daemon=True)
-        self._thread.start()
+        # 2 LUỒNG tách biệt: chụp (nhanh, đẩy hình mượt) + nhận diện (chậm, không khoá hình).
+        self._cap_thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self._det_thread = threading.Thread(target=self._detect_loop, daemon=True)
+        self._cap_thread.start()
+        self._det_thread.start()
 
     def _build(self):
         raise NotImplementedError
@@ -117,29 +124,44 @@ class _CameraBase:
     def _detect(self, landmarker, mp_img, ts):
         raise NotImplementedError
 
-    def _loop(self):
-        import mediapipe as mp
+    def _capture_loop(self):
+        """Chụp + đẩy hình webcam NGAY (không chờ MediaPipe) → nền mượt ~tốc độ camera."""
         cv2 = self.cv2
-        landmarker = self._build()          # tạo trong luồng worker (mediapipe Tasks an toàn 1 luồng)
-        ts = 0
         while not self._stop:
             ok, frame = self.cap.read()
             if not ok:
                 continue
             frame = cv2.flip(frame, 1)       # soi gương
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            disp = cv2.resize(rgb, (C.W, C.H))
+            with self._lock:
+                self._frame_bytes = disp.tobytes()
+                self._fid += 1
+                self._latest_rgb = rgb        # giao cho luồng nhận diện (frame mới nhất)
+                self._latest_rgb_id = self._fid
+
+    def _detect_loop(self):
+        """Nhận diện MediaPipe ở luồng riêng trên frame mới nhất; chậm cũng KHÔNG làm khựng hình."""
+        import mediapipe as mp
+        landmarker = self._build()          # tạo trong chính luồng dùng (Tasks an toàn 1 luồng)
+        ts = 0
+        last_id = -1
+        while not self._stop:
+            with self._lock:
+                rgb = self._latest_rgb
+                rid = self._latest_rgb_id
+            if rgb is None or rid == last_id:
+                time.sleep(0.005)            # chưa có frame mới → nhường CPU
+                continue
+            last_id = rid
             mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
             ts += int(1000 / C.FPS)
             try:
                 pts = self._detect(landmarker, mp_img, ts)
             except Exception:
                 pts = []
-            disp = cv2.resize(rgb, (C.W, C.H))
-            b = disp.tobytes()
             with self._lock:
-                self._frame_bytes = b
                 self._pts_raw = pts
-                self._fid += 1
         landmarker.close()
 
     def read(self):
@@ -172,8 +194,9 @@ class _CameraBase:
 
     def close(self):
         self._stop = True
-        if self._thread:
-            self._thread.join(timeout=1.0)
+        for t in (self._cap_thread, self._det_thread):
+            if t:
+                t.join(timeout=1.0)
         try:
             self.cap.release()
         except Exception:
