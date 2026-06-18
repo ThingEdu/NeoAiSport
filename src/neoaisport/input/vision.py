@@ -29,20 +29,30 @@ EMA = 0.5                   # hệ số làm mượt (cao = bám nhanh, thấp =
 HOLD_FRAMES = 8             # giữ vị trí khi mất nhận diện thoáng qua
 
 
+def _camera_candidates(cam: int | None) -> list[int]:
+    """Danh sách index camera cần thử. cam cố định > env NEOAISPORT_CAM > các /dev/video* CÓ THẬT."""
+    if cam is not None:
+        return [cam]
+    env = os.environ.get("NEOAISPORT_CAM", "")
+    if env.strip().lstrip("-").isdigit():
+        return [int(env)]
+    import glob
+    nums = sorted({int("".join(filter(str.isdigit, os.path.basename(p))) or -1)
+                   for p in glob.glob("/dev/video*")})
+    nums = [n for n in nums if n >= 0]
+    return nums or [0]          # không có /dev/video* (vd macOS) → thử 0
+
+
 def _open_camera(cv2, cam: int | None):
     """Mở webcam, trả (cap, index) hoặc (None, None).
 
     Trên NEO/Linux camera thật có thể KHÔNG ở index 0 (các node /dev/video phụ:
-    metadata, obsensor… mở 0 thất bại). Nên khi cam=None ta tự dò: ưu tiên biến môi
-    trường NEOAISPORT_CAM, rồi quét 0..9 lấy index ĐẦU TIÊN mở được VÀ đọc được frame.
+    metadata, obsensor…). Ta **ép backend V4L2** để mở nhanh + tránh backend obsensor dò
+    chậm (nguyên nhân camera "lên chậm"), và chỉ thử các /dev/video* có thật.
     """
-    if cam is not None:
-        candidates = [cam]
-    else:
-        env = os.environ.get("NEOAISPORT_CAM", "")
-        candidates = [int(env)] if env.strip().lstrip("-").isdigit() else list(range(10))
-    for idx in candidates:
-        cap = cv2.VideoCapture(idx)
+    backend = getattr(cv2, "CAP_V4L2", 0)
+    for idx in _camera_candidates(cam):
+        cap = cv2.VideoCapture(idx, backend) if backend else cv2.VideoCapture(idx)
         if cap.isOpened():
             ok, frame = cap.read()
             if ok and frame is not None:
@@ -73,9 +83,18 @@ class _CameraBase:
         self.cv2 = cv2
         self.cap, self.cam_index = _open_camera(cv2, cam)
         if self.cap is None:
-            raise RuntimeError("Không mở được webcam (đã dò /dev/video0..9)")
+            raise RuntimeError("Không mở được webcam (đã dò các /dev/video*)")
+        # MJPG + 640×480 + buffer 1: USB nhẹ hơn, KHÔNG giữ frame cũ → giảm trễ/lác trên ARM.
+        try:
+            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+        except Exception:
+            pass
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAP_W)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAP_H)
+        try:
+            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        except Exception:
+            pass
         self._lock = threading.Lock()
         self._frame_bytes = None
         self._pts_raw: list = []
